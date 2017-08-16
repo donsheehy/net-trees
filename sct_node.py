@@ -1,5 +1,4 @@
 from point import Point
-
 class SCTNode:
     def __init__(self, point, level):
         self.point = point
@@ -26,6 +25,12 @@ class SCTNode:
 
     def __str__(self):
         return str(self.point) + " at level " + str(self.level) + "\n" + "".join(str(c) for c in self.ch)
+    
+    def __eq__(self, other):
+        return self.point == other.point and self.level == other.level
+    
+    def __hash__(self):
+        return hash((tuple(self.point.coords), self.level))
 
 """
 Below are some static methods that allow us to treat the nodes as a metric
@@ -46,7 +51,7 @@ def par(nodes):
             {node.par for node in nodes if node.par is not None}
 
 def nearest(node, others):
-    return min(others, key = node.point.sqdistto)
+    return min(others, key=lambda n:node.point.distto(n.point))
 
 def dist(node, other):
-    return node.point.distto(other)
+    return node.point.distto(other if isinstance(other, Point) else other.point)
