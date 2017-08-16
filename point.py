@@ -1,17 +1,22 @@
 class Point:
-    def __init__(self, *coords):
-        self.coords = list(coords)
+    def __init__(self, coords, metric):
+        self.coords = coords
+        self.metric = metric
 
-    def sqdistto(self, other):
-        if not isinstance(other, Point):
-            other = other.point
-        return sum((self[i] - other[i])**2 for i in range(len(self.coords)))
-
-    def distto(self, other):
-        return self.sqdistto(other) ** 0.5
+    def distto(self, *others):
+        return self.metric.dist(self, *others)
 
     def __getitem__(self, index):
         return self.coords[index]
 
     def __str__(self):
         return "(" + ". ".join(str(c) for c in self.coords) + ")"
+    
+    def __eq__(self, other):
+        return self.coords == other.coords
+    
+    def __hash__(self):
+        return hash(tuple(self.coords))
+
+def setMetric(metric, points):
+    for pt in points: pt.metric = metric

@@ -27,6 +27,11 @@ class SCTPointLocation:
 
     def nn(self, point):
         return self._nn[point]
+    
+    def removepoint(self, point):
+        self._rnn_in[self.nn(point)].discard(point)
+        self._rnn_out[self.nn(point)].discard(point)
+        self._nn.pop(point, None)
 
     def addnode(self, node):
         if node not in self._rnn_in:
@@ -53,13 +58,8 @@ class SCTPointLocation:
         self._rnn_out[fromnode].discard(point)
 
     def trytochangernn(self, point, tonode):
-        """
-        This is WRONG!
-        It should give precendence to closer nodes.
-        """
         fromnode = self._nn[point]
         if self.tree.isrel(tonode, point):
-            if fromnode.level > tonode.level or \
-                    (fromnode.level == tonode.level and \
-                    point.distto(tonode) < point.distto(fromnode)):
+            if (fromnode.point == tonode.point and fromnode.level > tonode.level) or \
+                    (fromnode.point != tonode.point and dist(tonode, point) < dist(fromnode, point)):
                 self.changernn(point, fromnode, tonode)
