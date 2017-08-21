@@ -1,23 +1,24 @@
 import unittest
-from sct import SCT
+from snt import SNT
 from point import Point
-from metrics import Euclidean
-from sct_node import SCTNode
-from ntverify import *
+from metrics import Euclidean, LInfinity
+from node import Node
+from snt_verify import *
 import random
 
 
-class TestSCT(unittest.TestCase):
+class TestSNT(unittest.TestCase):
     def testinit(self):
-        T = SCT(3, 1, 2)
-        self.assertEqual(T.tau, 3)
+        T = SNT(5, 1, 2)
+        self.assertEqual(T.tau, 5)
         self.assertEqual(T.cp, 1)
         self.assertEqual(T.cc, 2)
+        self.assertEqual(T.cr, 20)
         self.assertTrue(hasattr(T, 'cr'))
         self.assertTrue(hasattr(T, 'root'))
 
     def testsetroot(self):
-        T = SCT(3, 1, 2)
+        T = SNT(3, 1, 2, 2)
         rootpoint = Point([1, 2, 3, 4, 5], Euclidean())
         T.setroot(rootpoint)
         self.assertEqual(T.root.point, rootpoint)
@@ -26,7 +27,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(T.root.getchild().level, float('-inf'))
 
     def testsplitbelow_root(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
         n = T.splitbelow(T.root, 1)
         self.assertEqual(n.point, T.root.point)
@@ -38,7 +39,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(n.rel, {n})
 
     def testsplitbelow_leaf(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
         a = T.splitbelow(T.root, 10)
         n = T.splitbelow(a, 0)
@@ -52,7 +53,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(n.rel, {n})
 
     def testsplitbelow_actualsplit(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
         a = T.splitbelow(T.root, 10)
         b = T.splitbelow(a, 0)
@@ -64,7 +65,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(a.ch, {n})
 
     def testsplitabove(self):
-        T = SCT(4, 1, 1)
+        T = SNT(4, 1, 1, 2)
         T.setroot(Point([0], Euclidean()))
         a = T.splitbelow(T.root, 10)
         b = T.splitbelow(a, 0)
@@ -76,11 +77,11 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(a.ch, {n})
         
     def testiscovered(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         metric = Euclidean()
-        a = SCTNode(Point([0, 0], metric), 2)
-        b = SCTNode(Point([0, 12], metric), 1)
-        c = SCTNode(b.point, 0)
+        a = Node(Point([0, 0], metric), 2)
+        b = Node(Point([0, 12], metric), 1)
+        c = Node(b.point, 0)
         a.addch(b)
         b.addch(c)
         self.assertTrue(T.iscovered(c))
@@ -90,11 +91,11 @@ class TestSCT(unittest.TestCase):
         self.assertTrue(T.iscovered(b))
         
     def testisrel(self):
-        T = SCT(3, 1, 1, 4)
+        T = SNT(3, 1, 1, 4)
         metric = Euclidean()
-        a = SCTNode(Point([0, 0], metric), 2)
-        b = SCTNode(Point([0, 35], metric), 2)
-        c = SCTNode(Point([0, 37], metric), 2)
+        a = Node(Point([0, 0], metric), 2)
+        b = Node(Point([0, 35], metric), 2)
+        c = Node(Point([0, 37], metric), 2)
         self.assertTrue(T.isrel(a, a))
         self.assertEqual(metric.counter, 0)
         self.assertTrue(T.isrel(a, b))
@@ -102,7 +103,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(metric.counter, 2)
 
     def testinsert_onepointafterroot(self):
-        T = SCT(4, 1, 1, 4)
+        T = SNT(4, 1, 1, 4)
         metric = Euclidean()
         T.setroot(Point([0, 0], metric))
         T.insert(Point([6, 0], metric), T.root)
@@ -119,7 +120,7 @@ class TestSCT(unittest.TestCase):
         self.assertEqual(c.getchild().level, float('-inf'))
         
     def testinsert(self):
-        T = SCT(2, 1, 1, 4)
+        T = SNT(2, 1, 1, 4)
         p1 = Point([0], Euclidean())
         p2 = Point([2], Euclidean())
         p3 = Point([11], Euclidean())
@@ -158,7 +159,7 @@ class TestSCT(unittest.TestCase):
         
 
     def testconstruct(self):
-        T = SCT(2, 1, 1, 4)
+        T = SNT(2, 1, 1, 4)
         p1 = Point([0], Euclidean())
         p2 = Point([2], Euclidean())
         p3 = Point([11], Euclidean())
@@ -194,9 +195,9 @@ class TestSCT(unittest.TestCase):
         
     def testconstructwithverification(self):
         points = [Point([x, 0, 1], Euclidean()) for x in [8, 1, 2, 32, 64, 81, 80, 160]]
-        T = SCT(4, 1, 1)
+        T = SNT(4, 1, 1, 4)
         T.construct(points)
-        ver = ntverify(T, points)
+        ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
         self.assertTrue(ver.issemicompressed())
@@ -207,9 +208,9 @@ class TestSCT(unittest.TestCase):
         self.assertTrue(ver.isglobalnettree())
         
         points = [Point([x], Euclidean()) for x in [7, 44, 30, 24, 76]]  
-        T = SCT(5, 1, 1, 10)
+        T = SNT(5, 1, 1)
         T.construct(points)
-        ver = ntverify(T, points)
+        ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
         self.assertTrue(ver.issemicompressed())
@@ -218,10 +219,10 @@ class TestSCT(unittest.TestCase):
         T.cp = 1 / 4
         self.assertTrue(ver.isglobalnettree())
         
-        points = [Point([x], Euclidean()) for x in [25, 20, 54, 30, 40, 0]]  
-        T = SCT(5, 1, 1, 10)
+        points = [Point([x], Euclidean()) for x in [25, 20, 54, 30, 40, 0]] 
+        T = SNT(5, 1, 1)
         T.construct(points)
-        ver = ntverify(T, points)
+        ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
         self.assertTrue(ver.issemicompressed())
@@ -230,17 +231,18 @@ class TestSCT(unittest.TestCase):
         T.cp = 1 / 4
         self.assertTrue(ver.isglobalnettree())
         
-        points = [Point([random.randint(-10000, 10000) for d in range(2)], Euclidean()) for i in range(50)] 
+        metric = Euclidean()
+        points = [Point([random.randint(-10000, 10000) for d in range(3)], metric) for i in range(200)] 
         tmp = list()
         for p in points:
-            if p in tmp: 
+            if p in tmp:
                 print('duplicate:', p)
             else:
                 tmp.append(p)
         points = tmp
-        T = SCT(5, 1, 1, 10)
+        T = SNT(5, 1, 1)
         T.construct(points)
-        ver = ntverify(T, points)
+        ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())        
         self.assertTrue(ver.islocalnettree())

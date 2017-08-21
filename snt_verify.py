@@ -1,8 +1,8 @@
-from sct import SCT
-from sct_node import *
+from snt import SNT
+from node import *
 from math import ceil, log
 
-class ntverify:
+class SNTVerify:
     def __init__(self, T, points):
         self.points = points
         self.T = T
@@ -116,6 +116,6 @@ class ntverify:
         self.minlevels = dict()
         for p1 in self.points:
             for p2 in self.points:
-                self.minlevels[(p1, p2)] = float('-inf') if p1 == p2 else ceil(log(p1.distto(p2) / self.T.cr, self.T.tau))
+                self.minlevels[(p1, p2)] = float('-inf') if p1 == p2 else self.T.minlevel(p1, p2)
         return self.minlevels
         

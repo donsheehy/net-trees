@@ -5,8 +5,11 @@ class Metric:
     __metaclass__ = ABCMeta
     
     def __init__(self):
+        self.resetcounter()
+        
+    def resetcounter(self):
         self.counter = 0
-
+        
     def dist(self, first, *others):
         if len(others) == 0: raise TypeError("Metric.dist: this method should have at least two arguments")
         self.counter += 1

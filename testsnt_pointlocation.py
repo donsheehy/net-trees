@@ -1,17 +1,17 @@
 import unittest
-from sct import SCT
-from sct_pointlocation import SCTPointLocation
+from snt import SNT
+from snt_pointlocation import SNTPointLocation
 from point import *
 from metrics import Euclidean
-from sct_node import SCTNode
+from node import Node
 
 
-class TestSCTPointLocation(unittest.TestCase):
+class TestSNTPointLocation(unittest.TestCase):
     def testinit(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
         points = [Point([i], Euclidean()) for i in [1, 2, 4, 8]]
-        ploc = SCTPointLocation(T, points)
+        ploc = SNTPointLocation(T, points)
         for p in points:
             self.assertEqual(ploc._nn[p], T.root)
         self.assertEqual(len(ploc._rnn_in), 1)
@@ -20,23 +20,23 @@ class TestSCTPointLocation(unittest.TestCase):
         self.assertEqual(len(ploc._rnn_out[T.root]), 0)
         
     def testaddnode(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
-        ploc = SCTPointLocation(T, [])
-        a = SCTNode(Point([1], Euclidean()), 2)
+        ploc = SNTPointLocation(T, [])
+        a = Node(Point([1], Euclidean()), 2)
         ploc.addnode(a)
         self.assertEqual(ploc._rnn_in[a], set())
         self.assertEqual(ploc._rnn_out[a], set())
         
     def testrnn(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.setroot(Point([0], Euclidean()))
-        ploc = SCTPointLocation(T, [])
+        ploc = SNTPointLocation(T, [])
         a = Point([1], Euclidean())
         b = Point([2], Euclidean())
         c = Point([3], Euclidean())
         d = Point([4], Euclidean())
-        n = SCTNode(Point([10], Euclidean()), 3)
+        n = Node(Point([10], Euclidean()), 3)
         ploc.addnode(n)
         ploc._rnn_in[T.root] = {a}
         ploc._rnn_out[T.root] = {b}
@@ -51,20 +51,20 @@ class TestSCTPointLocation(unittest.TestCase):
         self.assertEqual(ploc.rnn([T.root, n]), {a, b, c, d})
     
     def testupdateonsplit(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.tau = 2
         T.cr = 3
         r = Point([0], Euclidean())
         T.setroot(r)
-        ploc = SCTPointLocation(T, [])
+        ploc = SNTPointLocation(T, [])
         a = Point([1], Euclidean())
         b = Point([8], Euclidean())
         c = Point([13], Euclidean())
         d = Point([30], Euclidean())
         e = Point([63], Euclidean())
         f = Point([96], Euclidean())
-        n1 = SCTNode(r, 7)
-        n2 = SCTNode(r, 3)
+        n1 = Node(r, 7)
+        n2 = Node(r, 3)
         n1.addch(n2)
         ploc._rnn_in[n1] = {a, b, c, d}
         ploc._rnn_out[n1] = {e, f}
@@ -76,7 +76,7 @@ class TestSCTPointLocation(unittest.TestCase):
         self.assertEqual(ploc._rnn_out[n2], {b, c})
         
     def testupdate(self):
-        T = SCT(3, 1, 1)
+        T = SNT(3, 1, 1)
         T.cr = 2
         p1 = Point([0], Euclidean())
         p2 = Point([10], Euclidean())
@@ -93,16 +93,16 @@ class TestSCTPointLocation(unittest.TestCase):
         p13 = Point([80], Euclidean())
         p14 = Point([105], Euclidean())
         p15 = Point([140], Euclidean())
-        n1 = SCTNode(p1, 4)
-        n2 = SCTNode(p1, 3)
-        n3 = SCTNode(p1, 2)
-        n4 = SCTNode(p3, 3)
-        n5 = SCTNode(p2, 2)
-        n6 = SCTNode(p6, 4)
-        n7 = SCTNode(p6, 3)
-        n8 = SCTNode(p5, 3)
-        n9 = SCTNode(p5, 2)
-        n10 = SCTNode(p4, 2)
+        n1 = Node(p1, 4)
+        n2 = Node(p1, 3)
+        n3 = Node(p1, 2)
+        n4 = Node(p3, 3)
+        n5 = Node(p2, 2)
+        n6 = Node(p6, 4)
+        n7 = Node(p6, 3)
+        n8 = Node(p5, 3)
+        n9 = Node(p5, 2)
+        n10 = Node(p4, 2)
         n1.addch(n2)
         n1.addch(n4)
         n2.addch(n3)
@@ -116,7 +116,7 @@ class TestSCTPointLocation(unittest.TestCase):
         n3.addrel(n5)
         n7.addrel(n8)
         n9.addrel(n10)
-        ploc = SCTPointLocation(T, [])
+        ploc = SNTPointLocation(T, [])
         ploc._nn[p7] = ploc._nn[p8] = n5
         ploc._nn[p9] = n2
         ploc._nn[p10] = ploc._nn[p11] = n1

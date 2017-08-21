@@ -1,4 +1,4 @@
-from sct_node import *
+from node import *
 
 """
 The point location structure is responsible for mapping points to their nearest
@@ -7,7 +7,7 @@ The rnn's are split into two groups, in and out, depending on their distance
 to the node relative to the level of the node.
 """
 
-class SCTPointLocation:
+class SNTPointLocation:
     def __init__(self, tree, points):
         self.tree = tree
         self._nn = {p : tree.root for p in points}
@@ -15,11 +15,11 @@ class SCTPointLocation:
         self._rnn_out = {tree.root : set()}
 
     def rnn_in(self, nodes):
-        return self._rnn_in[nodes] if isinstance(nodes, SCTNode) else \
+        return self._rnn_in[nodes] if isinstance(nodes, Node) else \
                 set.union(*(self._rnn_in[node] for node in nodes))
 
     def rnn_out(self, nodes):
-        return self._rnn_out[nodes] if isinstance(nodes, SCTNode) else \
+        return self._rnn_out[nodes] if isinstance(nodes, Node) else \
                 set.union(*(self._rnn_out[node] for node in nodes))
 
     def rnn(self, nodes):
@@ -45,12 +45,13 @@ class SCTPointLocation:
 
     def updateonsplit(self, node):
         self.addnode(node)
-        for point in self.rnn(par(node)):
-            self.trytochangernn(point, node)
+        if node.level != float('-inf'):
+            for point in self.rnn(par(node)):
+                self.trytochangernn(point, node)
 
-    def changernn(self, point, fromnode, tonode):
+    def changernn(self, point, fromnode, tonode, todist):
         self._nn[point] = tonode
-        if self.tree.iscloserel(tonode, point):
+        if self.tree.iscloserel(tonode, point, todist):
             self._rnn_in[tonode].add(point)
         else:
             self._rnn_out[tonode].add(point)
@@ -59,7 +60,8 @@ class SCTPointLocation:
 
     def trytochangernn(self, point, tonode):
         fromnode = self._nn[point]
-        if self.tree.isrel(tonode, point):
+        todist = point.distto(tonode.point)
+        if self.tree.isrel(tonode, point, todist):
             if (fromnode.point == tonode.point and fromnode.level > tonode.level) or \
-                    (fromnode.point != tonode.point and dist(tonode, point) < dist(fromnode, point)):
-                self.changernn(point, fromnode, tonode)
+                    (fromnode.point != tonode.point and todist < fromnode.point.distto(point)):
+                self.changernn(point, fromnode, tonode, todist)

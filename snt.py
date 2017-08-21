@@ -1,23 +1,23 @@
 import math
-from sct_pointlocation import *
+from snt_pointlocation import *
 
-class SCT:
+class SNT:
     def __init__(self, tau, cp, cc, cr=None):
         self.tau = tau
         self.cp = cp
         self.cc = cc
-        self.cr = cr or (2 * cc * tau) / (tau - 2)  # (2 * cc * tau ** 2) / (tau - 4)
+        self.cr = cr or max((2 * cc * tau) / (tau - 4), cc * tau)
         self.root = None
 
     def setroot(self, point):
-        self.root = SCTNode(point, float('inf'))
+        self.root = Node(point, float('inf'))
         self.splitbelow(self.root, float('-inf'))
 
     def construct(self, points):
         # Should shuffle the points first!!
         points = list(points)
         self.setroot(points.pop())
-        self.ploc = SCTPointLocation(self, points)
+        self.ploc = SNTPointLocation(self, points)
         self.ploc.addnode(self.root.getchild())
         for p in points:
             self.insert(p)
@@ -25,17 +25,17 @@ class SCT:
     def insert(self, point, closest=None):
         closest = closest or self.ploc.nn(point)
         if hasattr(self, 'ploc'): self.ploc.removepoint(point)
-        level = math.ceil(math.log(dist(closest, point) / self.cr, self.tau))
+        level = self.minlevel(closest, point)
         if level < closest.level:
             closest = self.splitbelow(closest, level)
-        node = SCTNode(point, level)
+        node = Node(point, level)
         self.update(node, closest)
         self.splitbelow(node, float('-inf'))
         while not self.iscovered(node):
             node = self.promote(node)
 
     def promote(self, node):
-        newnode = SCTNode(node.point, node.level + 1)
+        newnode = Node(node.point, node.level + 1)
         self.update(newnode, node.par)
         return newnode
 
@@ -68,7 +68,7 @@ class SCT:
 
     def splitbelow(self, node, level):
         # Assumes a long edge or leaf
-        newnode = SCTNode(node.point, level)
+        newnode = Node(node.point, level)
         if node.ch: newnode.addch(node.getchild())
         node.ch = set()
         newnode.setpar(node)
@@ -77,17 +77,21 @@ class SCT:
 
     def splitabove(self, node, level):
         return self.splitbelow(node.par, level)
+    
+    def minlevel(self, first, second):
+        return math.ceil(math.log((first.point if isinstance(first, Node) else first)
+                                  .distto(second.point if isinstance(second, Node) else second) / self.cr, self.tau))
 
     def iscovered(self, node):
         return True if node.point == node.par.point else dist(node, node.par) <= self.cc * (self.tau ** (node.level + 1))
 
-    def isrel(self, node, other):
-        if (isinstance(other, SCTNode) and node.point == other.point) or (isinstance(other, Point) and node.point == other):
+    def isrel(self, node, other, computeddist=None):
+        if (isinstance(other, Node) and node.point == other.point) or (isinstance(other, Point) and node.point == other):
             return True
-        return dist(node, other) <= self.cr * (self.tau ** node.level)
+        return (computeddist or dist(node, other)) <= self.cr * (self.tau ** node.level)
 
-    def iscloserel(self, node, other):
-        return dist(node, other) <= self.cp * (self.tau ** (node.level - 1)) / 2
+    def iscloserel(self, node, other, computeddist=None):
+        return (computeddist or dist(node, other)) <= self.cp * (self.tau ** (node.level - 1)) / 2
 
     def __str__(self):
         return str(self.root)

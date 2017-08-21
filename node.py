@@ -1,5 +1,5 @@
 from point import Point
-class SCTNode:
+class Node:
     def __init__(self, point, level):
         self.point = point
         self.level = level
@@ -39,19 +39,19 @@ of just individuals.
 """
 
 def ch(nodes):
-    return nodes.ch if isinstance(nodes, SCTNode) else \
+    return nodes.ch if isinstance(nodes, Node) else \
             set.union(*(node.ch for node in nodes))
 
 def rel(nodes):
-    return nodes.rel if isinstance(nodes, SCTNode) else \
+    return nodes.rel if isinstance(nodes, Node) else \
             set.union(*(node.rel for node in nodes))
 
 def par(nodes):
-    return nodes.par if isinstance(nodes, SCTNode) else \
+    return nodes.par if isinstance(nodes, Node) else \
             {node.par for node in nodes if node.par is not None}
 
 def nearest(node, others):
     return min(others, key=lambda n:node.point.distto(n.point))
 
 def dist(node, other):
-    return node.point.distto(other if isinstance(other, Point) else other.point)
+    return node.point.distto(other.point)
