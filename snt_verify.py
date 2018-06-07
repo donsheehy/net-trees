@@ -1,6 +1,4 @@
-from snt import SNT
-from node import *
-from math import ceil, log
+from node import Node, dist, rel
 
 class SNTVerify:
     def __init__(self, T, points):
@@ -36,7 +34,7 @@ class SNTVerify:
                 # packing
                 for ch2 in node.ch:
                     if ch1 != ch2 and dist(ch1, ch2) <= self.T.cp * self.T.tau ** max(ch1.level, ch2.level):
-                        print('Violates LNT packing')
+                        print('Violates LNT packing: ', ch1.point,ch1.level, ch2.point, ch2.level)
                         return False
         return True
     
@@ -79,7 +77,8 @@ class SNTVerify:
                 for n2 in self.uncomplevels[level] - {n1}:                    
                     if self.minlevels[(n1.point, n2.point)] <= level:
                         relno += 1
-                if (relno == 0 and n1.level == level) or (relno > 0 and n1.level != level):
+                if (relno == 0 and n1.level == level and len(n1.par.ch) == 1) or (relno > 0 and n1.level != level):
+                    print('Violates Semi-compressed condition')
                     return False
         return True
                     
@@ -88,6 +87,7 @@ class SNTVerify:
             for n1 in self.uncomplevels[level]:
                 for n2 in self.uncomplevels[level] - {n1}:
                     if self.minlevels[(n1.point, n2.point)] <= level and (n1 not in n2.rel or n2 not in n1.rel):
+                        print('Relatives are not correct')
                         return False
         return True
         
@@ -116,6 +116,6 @@ class SNTVerify:
         self.minlevels = dict()
         for p1 in self.points:
             for p2 in self.points:
-                self.minlevels[(p1, p2)] = float('-inf') if p1 == p2 else self.T.minlevel(p1, p2)
+                self.minlevels[(p1, p2)] = float('-inf') if p1 == p2 else self.T.minlevelrelatives(Node(p1,0), p2)
         return self.minlevels
         

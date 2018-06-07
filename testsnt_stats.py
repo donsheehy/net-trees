@@ -1,6 +1,8 @@
 import unittest
 from snt import SNT
-from snt_stats import *
+from snt_stats import SNTStats
+from metric import Euclidean
+from point import Point
 
 class TestSNT(unittest.TestCase):
     

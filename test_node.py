@@ -1,7 +1,6 @@
 import unittest
-from point import Point
 from node import *
-from metrics import Euclidean
+from metric import Euclidean
 
 
 class TestNode(unittest.TestCase):

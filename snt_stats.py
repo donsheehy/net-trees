@@ -1,6 +1,3 @@
-from snt import SNT
-from point import *
-from metrics import *
 
 class SNTStats:
     def __init__(self, T):

@@ -1,4 +1,17 @@
+"""
+Declares a point in a metric space
+"""
 class Point:
+    """
+    Defines a point in a metric space
+    
+    Parameters:
+    ----------
+    coords : Iterable
+        The point coordinates.
+    metric : Metric
+        The metric used to measure points proximity.
+    """
     def __init__(self, coords, metric):
         self.coords = coords
         self.metric = metric

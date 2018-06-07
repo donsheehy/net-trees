@@ -1,6 +1,6 @@
 import unittest
-from point import *
-from metrics import *
+from point import Point, setMetric
+from metric import Euclidean, Manhattan, LInfinity
 
 
 class TestPoint(unittest.TestCase):

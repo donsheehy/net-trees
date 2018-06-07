@@ -1,7 +1,7 @@
 import unittest
 from snt import SNT
 from point import Point
-from metrics import Euclidean
+from metric import Euclidean
 from node import Node
 from snt_verify import SNTVerify
 
@@ -127,6 +127,17 @@ class TestSNT(unittest.TestCase):
         n1.addch(n2)
         ver.populate()
         self.assertFalse(ver.issemicompressed())
+        
+        p1 = Point([-9956], Euclidean())
+        p2 = Point([1288], Euclidean())
+        T = SNT(7, 1, 1, 14 / 3)
+        T.setroot(p1)
+        T.insert(p2, T.root)
+        ver = SNTVerify(T, [p1, p2])
+        ver.populate()
+        self.assertTrue(ver.issemicompressed())
+        
+        
         
     def testislocalnettree(self):
         T = SNT(2, 1, 1, 4)

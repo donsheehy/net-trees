@@ -1,11 +1,12 @@
 import unittest
 from snt import SNT
 from point import Point
-from metrics import Euclidean, LInfinity
+from metric import Euclidean
 from node import Node
-from snt_verify import *
+from snt_verify import SNTVerify
 import random
-
+# from snt_pointlocation import SNTPointLocation as PL
+from pointlocation import SinglePathPointLocation as PL
 
 class TestSNT(unittest.TestCase):
     def testinit(self):
@@ -164,7 +165,7 @@ class TestSNT(unittest.TestCase):
         p2 = Point([2], Euclidean())
         p3 = Point([11], Euclidean())
         p4 = Point([28], Euclidean())
-        T.construct([p2, p3, p4, p1])
+        T.construct([p2, p3, p4, p1], PL)
         self.assertEqual(T.root.getchild().point, p1)
         self.assertEqual(T.root.getchild().level, 5)
         n1 = [ch for ch in T.root.getchild().ch if ch.point == p1][0]
@@ -196,7 +197,7 @@ class TestSNT(unittest.TestCase):
     def testconstructwithverification(self):
         points = [Point([x, 0, 1], Euclidean()) for x in [8, 1, 2, 32, 64, 81, 80, 160]]
         T = SNT(4, 1, 1, 4)
-        T.construct(points)
+        T.construct(points, PL)
         ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
@@ -209,7 +210,7 @@ class TestSNT(unittest.TestCase):
         
         points = [Point([x], Euclidean()) for x in [7, 44, 30, 24, 76]]  
         T = SNT(5, 1, 1)
-        T.construct(points)
+        T.construct(points, PL)
         ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
@@ -221,7 +222,7 @@ class TestSNT(unittest.TestCase):
         
         points = [Point([x], Euclidean()) for x in [25, 20, 54, 30, 40, 0]] 
         T = SNT(5, 1, 1)
-        T.construct(points)
+        T.construct(points, PL)
         ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())
@@ -231,8 +232,17 @@ class TestSNT(unittest.TestCase):
         T.cp = 1 / 4
         self.assertTrue(ver.isglobalnettree())
         
+        points = [Point([x], Euclidean()) for x in [-55,93,-90,-14,-13,-12]]
+        T = SNT(7, 1, 1)
+        T.construct(points, PL)
+        ver = SNTVerify(T, points)
+        ver.populate()
+        self.assertTrue(ver.relativescorrect())        
+        self.assertTrue(ver.islocalnettree())
+        self.assertTrue(ver.issemicompressed())
+        
         metric = Euclidean()
-        points = [Point([random.randint(-10000, 10000) for d in range(3)], metric) for i in range(200)] 
+        points = [Point([random.randint(-10000, 10000) for _ in range(2)], metric) for _ in range(200)] 
         tmp = list()
         for p in points:
             if p in tmp:
@@ -240,15 +250,16 @@ class TestSNT(unittest.TestCase):
             else:
                 tmp.append(p)
         points = tmp
-        T = SNT(5, 1, 1)
-        T.construct(points)
+        tau = 7
+        T = SNT(tau, 1, 1)
+        T.construct(points, PL)
         ver = SNTVerify(T, points)
         ver.populate()
         self.assertTrue(ver.relativescorrect())        
         self.assertTrue(ver.islocalnettree())
         self.assertTrue(ver.issemicompressed())
-        T.cc = 5 / 4
-        T.cp = 1 / 4
+        T.cc = tau / (tau - 1)
+        T.cp = (tau - 3) / (2 * (tau - 1))
         self.assertTrue(ver.isglobalnettree())
 
 if __name__ == '__main__':

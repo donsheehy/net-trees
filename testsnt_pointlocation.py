@@ -1,14 +1,14 @@
 import unittest
 from snt import SNT
 from snt_pointlocation import SNTPointLocation
-from point import *
-from metrics import Euclidean
+from point import Point
+from metric import Euclidean
 from node import Node
 
 
 class TestSNTPointLocation(unittest.TestCase):
     def testinit(self):
-        T = SNT(3, 1, 1)
+        T = SNT(5, 1, 1)
         T.setroot(Point([0], Euclidean()))
         points = [Point([i], Euclidean()) for i in [1, 2, 4, 8]]
         ploc = SNTPointLocation(T, points)
@@ -20,13 +20,35 @@ class TestSNTPointLocation(unittest.TestCase):
         self.assertEqual(len(ploc._rnn_out[T.root]), 0)
         
     def testaddnode(self):
-        T = SNT(3, 1, 1)
+        T = SNT(5, 1, 1)
         T.setroot(Point([0], Euclidean()))
         ploc = SNTPointLocation(T, [])
         a = Node(Point([1], Euclidean()), 2)
         ploc.addnode(a)
         self.assertEqual(ploc._rnn_in[a], set())
         self.assertEqual(ploc._rnn_out[a], set())
+        
+    def testremovenode(self):
+        T = SNT(5, 1, 1)
+        p1 = Point([.5], Euclidean())
+        p2 = Point([.25], Euclidean())
+        p3 = Point([2], Euclidean())
+        p4 = Point([5], Euclidean())
+        p5 = Point([30], Euclidean())
+        ploc = SNTPointLocation(T, [p1, p2, p3, p4, p5])
+        a = Node(Point([0], Euclidean()), 2)
+        b = Node(Point([0], Euclidean()), 1)
+        c = Node(Point([0], Euclidean()), float('-inf'))
+        a.addch(b)
+        b.addch(c)
+        ploc.addnode(a)
+        ploc._nn[p1] = ploc._nn[p2] = ploc._nn[p3] = ploc._nn[p4] = ploc._nn[p5] = b
+        ploc._rnn_in[b] = {p1, p2}
+        ploc._rnn_out[b] = {p3, p4, p5}
+        ploc.updateonremoval(b)
+        self.assertTrue(ploc._nn[p1] == ploc._nn[p2] == ploc._nn[p3] == ploc._nn[p4] == ploc._nn[p5] == a)
+        self.assertEqual(ploc._rnn_in[a], {p1, p2, p3})
+        self.assertEqual(ploc._rnn_out[a], {p4, p5})
         
     def testrnn(self):
         T = SNT(3, 1, 1)
@@ -56,13 +78,13 @@ class TestSNTPointLocation(unittest.TestCase):
         T.cr = 3
         r = Point([0], Euclidean())
         T.setroot(r)
-        ploc = SNTPointLocation(T, [])
         a = Point([1], Euclidean())
         b = Point([8], Euclidean())
         c = Point([13], Euclidean())
         d = Point([30], Euclidean())
         e = Point([63], Euclidean())
         f = Point([96], Euclidean())
+        ploc = SNTPointLocation(T, [a, b, c, d, e, f])
         n1 = Node(r, 7)
         n2 = Node(r, 3)
         n1.addch(n2)
@@ -75,7 +97,7 @@ class TestSNTPointLocation(unittest.TestCase):
         self.assertEqual(ploc._rnn_in[n2], {a})
         self.assertEqual(ploc._rnn_out[n2], {b, c})
         
-    def testupdate(self):
+    def testupdateoninsertion(self):
         T = SNT(3, 1, 1)
         T.cr = 2
         p1 = Point([0], Euclidean())
@@ -116,7 +138,7 @@ class TestSNTPointLocation(unittest.TestCase):
         n3.addrel(n5)
         n7.addrel(n8)
         n9.addrel(n10)
-        ploc = SNTPointLocation(T, [])
+        ploc = SNTPointLocation(T, [p7, p8, p9, p10, p11, p12, p13, p14, p15])
         ploc._nn[p7] = ploc._nn[p8] = n5
         ploc._nn[p9] = n2
         ploc._nn[p10] = ploc._nn[p11] = n1
@@ -135,7 +157,7 @@ class TestSNTPointLocation(unittest.TestCase):
         ploc._rnn_out[n10] = {p14}
         ploc._rnn_in[n1] = ploc._rnn_in[n2] = ploc._rnn_in[n3] = ploc._rnn_in[n5] = set()
         ploc._rnn_in[n6] = ploc._rnn_in[n7] = ploc._rnn_in[n8] = ploc._rnn_in[n9] = ploc._rnn_in[n10] = set()
-        ploc.update(n4)
+        ploc.updateoninsertion(n4)
         self.assertEqual(ploc._rnn_in[n4], {p9})
         self.assertEqual(ploc._rnn_out[n4], {p8, p11, p13})
         self.assertTrue(ploc._nn[p8] == ploc._nn[p9] == ploc._nn[p11] == ploc._nn[p13] == n4)

@@ -1,4 +1,9 @@
+"""
+Defines nodes that are the building blocks of net-trees
+"""
+
 from point import Point
+
 class Node:
     def __init__(self, point, level):
         self.point = point
@@ -50,8 +55,8 @@ def par(nodes):
     return nodes.par if isinstance(nodes, Node) else \
             {node.par for node in nodes if node.par is not None}
 
-def nearest(node, others):
+def nearest(node, others):        
     return min(others, key=lambda n:node.point.distto(n.point))
 
 def dist(node, other):
-    return node.point.distto(other.point)
+    return node.point.distto(other if isinstance(other, Point) else other.point)
