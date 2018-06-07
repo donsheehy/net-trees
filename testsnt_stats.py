@@ -3,13 +3,14 @@ from snt import SNT
 from snt_stats import SNTStats
 from metric import Euclidean
 from point import Point
+from snt_pointlocation import SNTPointLocation
 
 class TestSNT(unittest.TestCase):
     
     def testall(self):
         points = [Point([x, 0, 1], Euclidean()) for x in [2, 11, 28, 0]]
         T = SNT(2, 1, 1, 4)
-        T.construct(points)
+        T.construct(points, SNTPointLocation)
         stats = SNTStats(T)
         self.assertEqual(stats.levelno(), 6)
         self.assertEqual(stats.nodeno(), 12)
@@ -19,7 +20,7 @@ class TestSNT(unittest.TestCase):
         
         points = [Point([x], Euclidean()) for x in [25, 20, 54, 30, 40, 0]]
         T = SNT(5, 1, 1)
-        T.construct(points)
+        T.construct(points, SNTPointLocation)
         stats = SNTStats(T)
         self.assertEqual(stats.levelno(), 3)
         self.assertEqual(stats.nodeno(), 10)
@@ -29,7 +30,7 @@ class TestSNT(unittest.TestCase):
         
         points = [Point([x, 0, 1], Euclidean()) for x in [2, 65, 69, 0]]
         T = SNT(2, 1, 1, 4)
-        T.construct(points)
+        T.construct(points, SNTPointLocation)
         stats = SNTStats(T)
         self.assertEqual(stats.jumpno(), 2)
     
